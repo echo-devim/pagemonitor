@@ -9,9 +9,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import ui.notification.JavaNotification;
-import ui.notification.LinuxNotification;
 import ui.notification.Notification;
 
 public class PageMonitor {
@@ -147,16 +144,18 @@ public class PageMonitor {
 						Util.writeFile(this.WORK_PATH + id, newHtml);
 					}
 				}
-				Notification notif;
-				try {
-					notif = SETTINGS.getNotificationClass();
-					notif.setMessage(message);
-					notif.setUrl(url);
-					notif.setY(id * notif.getHeight());
-					notif.display();
-				} catch (Exception e) {
-					e.printStackTrace();
-					//System.err.println("Error in the notification creation process: " + e.getMessage());
+				if (!message.equals("")) {
+					Notification notif;
+					try {
+						notif = SETTINGS.getNotificationClass();
+						notif.setMessage(message);
+						notif.setUrl(url);
+						notif.setY(id * notif.getHeight());
+						notif.display();
+					} catch (Exception e) {
+						e.printStackTrace();
+						//System.err.println("Error in the notification creation process: " + e.getMessage());
+					}
 				}
 			} catch (IOException e) {
 				System.err.println("Connection problem: " + e.getMessage());
