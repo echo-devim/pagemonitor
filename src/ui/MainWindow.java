@@ -7,6 +7,9 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -187,6 +190,10 @@ public class MainWindow {
 						System.err.println("Could not load page: " + ex.getMessage());
 						jep.setText("<html>Could not load page: " + ex.getMessage() + "</html>");
 					}
+				} else {
+					StringSelection stringSelection = new StringSelection(listPages.getSelectedValue());
+					Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+					clpbrd.setContents(stringSelection, null);
 				}
 			}
 		});
