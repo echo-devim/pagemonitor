@@ -10,7 +10,7 @@ the application (e.g. with crond) using `java -jar PageMonitor.jar run` to start
 * Embeddded browser inside the application
 
 ### Screenshot
-[Screenshot]()
+![Screenshot](https://raw.githubusercontent.com/echo-devim/pagemonitor/master/screenshot.png)
 
 ### License
 GPLv3
