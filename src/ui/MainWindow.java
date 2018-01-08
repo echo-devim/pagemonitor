@@ -157,17 +157,32 @@ public class MainWindow {
 			public void actionPerformed(ActionEvent e) {
 				settingsWindow.show();
 			}});
-		container.add(btnMonitor);
-		container.add(btnAdd);
-		container.add(btnCheck);
-		container.add(btnCheckAll);
-		container.add(btnDelete);
-		container.add(btnDeleteAll);
-		container.add(btnSettings);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 1.0;
+		container.add(btnMonitor, c);
+		c.gridx = 1;
+		c.gridy = 0;
+		container.add(btnAdd, c);
+		c.gridx = 2;
+		c.gridy = 0;
+		container.add(btnCheck, c);
+		c.gridx = 3;
+		c.gridy = 0;
+		container.add(btnCheckAll, c);
+		c.gridx = 4;
+		c.gridy = 0;
+		container.add(btnDelete, c);
+		c.gridx = 5;
+		c.gridy = 0;
+		container.add(btnDeleteAll, c);
+		c.gridx = 6;
+		c.gridy = 0;
+		container.add(btnSettings, c);
+		c.gridx = 0;
 		c.gridy = 1;
-		c.gridwidth = c.LAST_LINE_END;
+		c.gridwidth = 7;
 		container.add(statusBar, c);
 		//TODO: embed a proper browser inside the gui (e.g. based on webkit)
 		JEditorPane jep = new JEditorPane();
@@ -198,18 +213,17 @@ public class MainWindow {
 			}
 		});
 		c.gridy = 2;
-		listPages.setMinimumSize(new Dimension(800, 100));
-		scrollPanePageList.setMinimumSize(new Dimension(800, 100));
+		c.weighty = 1.0;
+		c.ipady = 300;
 		scrollPanePageList.setViewportView(listPages);
 		container.add(scrollPanePageList, c);
 		if (settings.getLoadPageInApp()) {
 			c.gridy = 3;
 			c.ipady = 500;
-			c.ipadx = 800;
 			container.add(scrollPanePage, c);
 		}
 		mainwindow.add(container);
-		mainwindow.pack();
+		mainwindow.setSize(new Dimension(800, 500));
 		mainwindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainwindow.addWindowListener(new WindowListener() {
 			public void windowOpened(WindowEvent e) {}
