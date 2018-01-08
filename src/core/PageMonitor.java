@@ -1,5 +1,7 @@
 package core;
 
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -155,7 +157,8 @@ public class PageMonitor {
 						notif = SETTINGS.getNotificationClass();
 						notif.setMessage(message);
 						notif.setUrl(url);
-						notif.setY(id * notif.getHeight());
+						Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+						notif.setY((id * notif.getHeight()) % (int)rect.getMaxY());
 						notif.display();
 					} catch (Exception e) {
 						e.printStackTrace();
