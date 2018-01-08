@@ -92,17 +92,15 @@ public class PageMonitor {
 		try {
 			Files.delete(Paths.get(this.WORK_PATH + id));
 		} catch (IOException e) {
-			System.err.println("Error during page deletion: " + e.getMessage());
+			System.err.println("Error during page deletion from disk: " + e.getMessage());
 		}
 	}
 	
 	public void removeAllMonitoredPages() {
-		for (int id = 0; id < SETTINGS.urlsCount(); id++) {
-			try {
-				Files.delete(Paths.get(this.WORK_PATH + id));
-			} catch (IOException e) {
-				System.err.println("Error during page (" + id + ") deletion: " + e.getMessage());
-			}
+		File dir = new File(this.WORK_PATH);
+		for (File file : dir.listFiles()) {
+			if (!file.delete())
+				System.err.println("Error during page deletion from disk (" + file.getAbsolutePath()+")");
 		}
 		SETTINGS.removeAllUrls();
 	}
