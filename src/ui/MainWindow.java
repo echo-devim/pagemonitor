@@ -1,5 +1,6 @@
 package ui;
 
+import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -33,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -57,6 +59,16 @@ public class MainWindow {
 		}
 	}
 	
+	public static void setUIFont (javax.swing.plaf.FontUIResource f){
+	    java.util.Enumeration<Object> keys = UIManager.getLookAndFeelDefaults().keys();
+	    while (keys.hasMoreElements()) {
+	      Object key = keys.nextElement();
+	      Object value = UIManager.get (key);
+	      if (value instanceof javax.swing.plaf.FontUIResource)
+	        UIManager.put (key, f);
+	      }
+	    } 
+	
 	public static void main(String[] args) {
 		pageMonitor = new PageMonitor();
 		if ((args.length > 0) && (args[0].equals("run"))) {
@@ -70,6 +82,17 @@ public class MainWindow {
 			}
 			System.exit(0);
 		}
+		try {
+		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+		        if ("Nimbus".equals(info.getName())) {
+		            UIManager.setLookAndFeel(info.getClassName());
+		            break;
+		        }
+		    }
+		} catch (Exception e) {
+		    // If Nimbus is not available, use the default look and feel.
+		}
+		setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.PLAIN,12));
 		settings = new Settings();
 		settingsWindow = new SettingsWindow(settings);
 		JFrame mainwindow = new JFrame();
@@ -191,6 +214,7 @@ public class MainWindow {
 		JScrollPane scrollPanePage = new JScrollPane(jep);
 		JScrollPane scrollPanePageList = new JScrollPane();
 		updateList();
+		listPages.setBackground(new Color(1.0f, 1.0f, 0.95f));
 		listPages.addMouseListener(new MouseAdapter() {
 		    public void mouseClicked(MouseEvent evt) {
 		        if (evt.getClickCount() == 2) {
