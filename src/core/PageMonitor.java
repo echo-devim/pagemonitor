@@ -88,12 +88,19 @@ public class PageMonitor {
 	}
 	
 	public void removePage(int id) {
-		SETTINGS.removeUrl(id);
 		try {
 			Files.delete(Paths.get(this.WORK_PATH + id));
 		} catch (IOException e) {
 			System.err.println("Error during page deletion from disk: " + e.getMessage());
 		}
+		int lastId = SETTINGS.urlsCount() - 1;
+		if (id < lastId) {
+			File lastPage = new File(this.WORK_PATH + lastId);
+			File deletedPage = new File(this.WORK_PATH + id);
+			if (!lastPage.renameTo(deletedPage))
+				System.err.println("Error in renaming page from " + lastPage.getAbsolutePath() + " to " + deletedPage.getAbsolutePath());
+		}
+		SETTINGS.removeUrl(id);
 	}
 	
 	public void removeAllMonitoredPages() {
