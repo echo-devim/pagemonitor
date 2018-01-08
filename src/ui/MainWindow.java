@@ -198,6 +198,8 @@ public class MainWindow {
 			}
 		});
 		c.gridy = 2;
+		listPages.setMinimumSize(new Dimension(800, 100));
+		scrollPanePageList.setMinimumSize(new Dimension(800, 100));
 		scrollPanePageList.setViewportView(listPages);
 		container.add(scrollPanePageList, c);
 		if (settings.getLoadPageInApp()) {
