@@ -7,10 +7,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Function;
+
 import ui.notification.Notification;
 
 public class PageMonitor {
@@ -21,6 +24,7 @@ public class PageMonitor {
 	private ArrayList<Integer> monitored_pages;
 	private Thread worker;
 	private boolean background_monitor = false;
+	private Function<Integer,Boolean> callback = null;
 	
 	public PageMonitor() {
 		this.minutes_interval = SETTINGS.getMinutesInterval();
@@ -42,6 +46,10 @@ public class PageMonitor {
 					}
 				}
 			}};
+	}
+	
+	public void setCallback(Function<Integer,Boolean> callback) {
+		this.callback = callback;
 	}
 	
 	public Settings getSettings() {
@@ -160,6 +168,10 @@ public class PageMonitor {
 						Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getBounds();
 						notif.setY((id * notif.getHeight()) % (int)rect.getMaxY());
 						notif.display();
+						if (this.callback != null) {
+							if (!this.callback.apply(id))
+								System.err.println("Callback failed with id=" + id);
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 						//System.err.println("Error in the notification creation process: " + e.getMessage());

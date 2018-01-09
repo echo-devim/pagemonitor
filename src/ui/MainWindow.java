@@ -1,11 +1,14 @@
 package ui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
@@ -19,6 +22,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -32,6 +37,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -51,6 +57,8 @@ public class MainWindow {
 	private static PageMonitor pageMonitor;
 	private static Settings settings;
 	private static SettingsWindow settingsWindow;
+	protected static KeySetView<Integer,Boolean> concurrentSet;
+
 	
 	private static void updateList() {
 		listModel.removeAllElements();
@@ -67,9 +75,11 @@ public class MainWindow {
 	      if (value instanceof javax.swing.plaf.FontUIResource)
 	        UIManager.put (key, f);
 	      }
-	    } 
+	    }
 	
+
 	public static void main(String[] args) {
+		concurrentSet = ConcurrentHashMap.newKeySet();
 		pageMonitor = new PageMonitor();
 		if ((args.length > 0) && (args[0].equals("run"))) {
 			//wait the execution of all the checks, before to exit
@@ -94,7 +104,7 @@ public class MainWindow {
 		}
 		setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.PLAIN,12));
 		settings = new Settings();
-		settingsWindow = new SettingsWindow(settings);
+		settingsWindow = new SettingsWindow(settings); 
 		JFrame mainwindow = new JFrame();
 		mainwindow.setTitle("PageMonitor");
 		JPanel container = new JPanel(new GridBagLayout());
@@ -102,6 +112,18 @@ public class MainWindow {
 		JLabel statusBar = new JLabel("status bar");
 		listModel = new DefaultListModel<>();
 		JList<String> listPages = new JList<>(listModel);
+		listPages.setCellRenderer(new CustomListRenderer());
+		//TODO: Add a "Page" class and pass it here instead of the only id
+		//in this way you can display better the content of the update, for example
+		//with Page p; -> p.getDiff()
+		pageMonitor.setCallback((Integer id) -> {
+			//this callback is executed by multiple threads
+			if ((id >= 0) && (id < listModel.getSize())) {
+				concurrentSet.add(new Integer(id));
+				return true;
+			} else
+				return false;
+		});
 		JButton btnMonitor = new JButton("▶️ Start");
 		btnMonitor.setFont(new Font(btnMonitor.getFont().getName(), Font.PLAIN, TEXT_SIZE));		
 		btnMonitor.addActionListener(new ActionListener() {
@@ -214,7 +236,7 @@ public class MainWindow {
 		JScrollPane scrollPanePage = new JScrollPane(jep);
 		JScrollPane scrollPanePageList = new JScrollPane();
 		updateList();
-		listPages.setBackground(new Color(1.0f, 1.0f, 0.95f));
+		//listPages.setBackground(new Color(1.0f, 1.0f, 0.95f));
 		listPages.addMouseListener(new MouseAdapter() {
 		    public void mouseClicked(MouseEvent evt) {
 		        if (evt.getClickCount() == 2) {
@@ -265,5 +287,48 @@ public class MainWindow {
 			
 		});
 		mainwindow.setVisible(true);
+	}
+}
+
+class CustomListRenderer implements ListCellRenderer<String> {
+	protected final static String KEY_WORD = "CHANGED";
+	private JLabel renderer;
+	boolean showDesc = true;
+
+	public CustomListRenderer() {
+		renderer = new JLabel();
+	}
+
+	@Override
+	public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
+        Color background;
+        Color foreground;
+        // check if this cell represents the current DnD drop location
+        JList.DropLocation dropLocation = list.getDropLocation();
+        if (dropLocation != null
+                && !dropLocation.isInsert()
+                && dropLocation.getIndex() == index) {
+
+            background = Color.BLUE;
+            foreground = Color.WHITE;
+
+        // check if this cell is selected
+        } else if (isSelected) {
+            background = Color.BLUE;
+            foreground = Color.WHITE;
+
+        // unselected, and not the DnD drop location
+        } else {
+            background = Color.WHITE;
+            foreground = Color.BLACK;
+        };
+		if (MainWindow.concurrentSet.contains(index)) {
+			background = Color.YELLOW;
+		}
+		renderer.setOpaque(true);
+		renderer.setForeground(foreground);
+		renderer.setBackground(background);
+		renderer.setText(value);
+		return renderer;
 	}
 }
