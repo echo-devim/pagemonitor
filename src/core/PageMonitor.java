@@ -139,6 +139,7 @@ public class PageMonitor {
 			HttpsClient client = new HttpsClient(url);
 			try {
 				String newHtml = client.getHtml();
+				String newOriginalHtml = newHtml;
 				String oldHtml = Util.readFile(this.WORK_PATH + id);
 				if (this.extract_text_only) {
 					oldHtml = Util.extractText(oldHtml);
@@ -156,10 +157,10 @@ public class PageMonitor {
 				} else {
 					if (diffChars.length() > SETTINGS.getDiffCharsThreshold()) {
 						message = "Changed text: " + diffChars;
-						Util.writeFile(this.WORK_PATH + id, newHtml);
 					}
 				}
 				if (!message.equals("")) {
+					Util.writeFile(this.WORK_PATH + id, newOriginalHtml); //Update local copy with the newest version
 					Notification notif;
 					try {
 						notif = SETTINGS.getNotificationClass();
