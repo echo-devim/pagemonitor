@@ -88,7 +88,7 @@ public class SettingsWindow {
 		});
 		c.gridy = 5;
 		container.add(loadPageInApp, c);
-		JLabel lblWarn = new JLabel("<html><font size=2><i>The settings will auto-save when you change them.<br>However, you must restart the application to see the changes.</i></font></html>");
+		JLabel lblWarn = new JLabel("<html><font size=2><i>The settings will auto-save when you change them.<br>May you need to restart the application to see the changes.</i></font></html>");
 		c.gridy = 6;
 		container.add(lblWarn, c);
 		frame.add(container);

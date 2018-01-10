@@ -24,7 +24,7 @@ public class PageMonitor {
 	private ArrayList<Integer> monitored_pages;
 	private Thread worker;
 	private boolean background_monitor = false;
-	private Function<Integer,Boolean> callback = null;
+	private Function<ChangedPage,Boolean> callback = null;
 	
 	public PageMonitor() {
 		this.minutes_interval = SETTINGS.getMinutesInterval();
@@ -48,7 +48,7 @@ public class PageMonitor {
 			}};
 	}
 	
-	public void setCallback(Function<Integer,Boolean> callback) {
+	public void setCallback(Function<ChangedPage,Boolean> callback) {
 		this.callback = callback;
 	}
 	
@@ -169,7 +169,7 @@ public class PageMonitor {
 						notif.setY((id * notif.getHeight()) % (int)rect.getMaxY());
 						notif.display();
 						if (this.callback != null) {
-							if (!this.callback.apply(id))
+							if (!this.callback.apply(new ChangedPage(id, url, message)))
 								System.err.println("Callback failed with id=" + id);
 						}
 					} catch (Exception e) {

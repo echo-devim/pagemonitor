@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -54,6 +55,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import core.ChangedPage;
 import core.HttpsClient;
 import core.PageMonitor;
 import core.Settings;
@@ -66,8 +68,8 @@ public class MainWindow {
 	private static PageMonitor pageMonitor;
 	private static Settings settings;
 	private static SettingsWindow settingsWindow;
-	protected static KeySetView<Integer,Boolean> concurrentSet;
-	private static int changes_to_notify;
+	protected static KeySetView<ChangedPage,Boolean> concurrentSetChangedPages;
+	private static AtomicInteger changes_to_notify;
 	private static TrayIcon trayIcon;
 
 	
@@ -115,7 +117,7 @@ public class MainWindow {
 	}
 
 	public static void main(String[] args) {
-		concurrentSet = ConcurrentHashMap.newKeySet();
+		concurrentSetChangedPages = ConcurrentHashMap.newKeySet();
 		pageMonitor = new PageMonitor();
 		if ((args.length > 0) && (args[0].equals("run"))) {
 			//wait the execution of all the checks, before to exit
@@ -139,7 +141,7 @@ public class MainWindow {
 		    // If Nimbus is not available, use the default look and feel.
 		}
 		setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.PLAIN,12));
-		changes_to_notify = 0;
+		changes_to_notify = new AtomicInteger();
 	    trayIcon = new TrayIcon(getUpdatedTrayIcon());
 		settings = new Settings();
 		settingsWindow = new SettingsWindow(settings); 
@@ -151,15 +153,12 @@ public class MainWindow {
 		listModel = new DefaultListModel<>();
 		JList<String> listPages = new JList<>(listModel);
 		listPages.setCellRenderer(new CustomListRenderer());
-		//TODO: Add a "Page" class and pass it here instead of the only id
-		//in this way you can display better the content of the update, for example
-		//with Page p; -> p.getDiff()
-		pageMonitor.setCallback((Integer id) -> {
+		pageMonitor.setCallback((ChangedPage page) -> {
 			//this callback is executed by multiple threads
-			if ((id >= 0) && (id < listModel.getSize())) {
-				concurrentSet.add(new Integer(id));
+			if ((page.getId() >= 0) && (page.getId() < listModel.getSize())) {
+				concurrentSetChangedPages.add(page);
 				if (mainwindow.getState() == Frame.ICONIFIED) {
-					changes_to_notify++;
+					changes_to_notify.incrementAndGet();
 					trayIcon.setImage(getUpdatedTrayIcon());
 				}
 				return true;
@@ -274,7 +273,6 @@ public class MainWindow {
 		//TODO: embed a proper browser inside the gui (e.g. based on webkit)
 		JEditorPane jep = new JEditorPane();
 		jep.setEditable(false);
-		jep.setContentType("text/html");
 		JScrollPane scrollPanePage = new JScrollPane(jep);
 		JScrollPane scrollPanePageList = new JScrollPane();
 		updateList();
@@ -282,6 +280,7 @@ public class MainWindow {
 		listPages.addMouseListener(new MouseAdapter() {
 		    public void mouseClicked(MouseEvent evt) {
 		        if (evt.getClickCount() == 2) {
+		        	jep.setContentType("text/html");
 					try {
 						if ((!settings.getLoadPageInApp()) && (Desktop.isDesktopSupported())) {
 						    Desktop.getDesktop().browse(new URI(listPages.getSelectedValue()));
@@ -297,6 +296,11 @@ public class MainWindow {
 					StringSelection stringSelection = new StringSelection(listPages.getSelectedValue());
 					Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
 					clpbrd.setContents(stringSelection, null);
+					jep.setContentType("text/plain");
+					concurrentSetChangedPages.forEach((page) -> {
+						if (page.getId() == listPages.getSelectedIndex())
+							jep.setText(page.toString());
+					});
 				}
 			}
 		});
@@ -305,11 +309,9 @@ public class MainWindow {
 		c.ipady = 300;
 		scrollPanePageList.setViewportView(listPages);
 		container.add(scrollPanePageList, c);
-		if (settings.getLoadPageInApp()) {
-			c.gridy = 3;
-			c.ipady = 500;
-			container.add(scrollPanePage, c);
-		}
+		c.gridy = 3;
+		c.ipady = 500;
+		container.add(scrollPanePage, c);
 		final SystemTray tray = SystemTray.getSystemTray();
 		mainwindow.add(container);
 		mainwindow.setSize(new Dimension(800, 500));
@@ -328,7 +330,7 @@ public class MainWindow {
 						tray.add(trayIcon);
 						trayIcon.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
-							changes_to_notify = 0;
+							changes_to_notify.set(0);
 							trayIcon.setImage(getUpdatedTrayIcon());
 							mainwindow.setState(Frame.NORMAL);
 							mainwindow.setVisible(true);
@@ -380,8 +382,11 @@ class CustomListRenderer implements ListCellRenderer<String> {
             background = Color.WHITE;
             foreground = Color.BLACK;
         };
-		if (MainWindow.concurrentSet.contains(index)) {
+		if (MainWindow.concurrentSetChangedPages.contains(new ChangedPage(index, value))) {
 			background = Color.YELLOW;
+			if (isSelected) {
+				background = Color.GRAY;
+			}
 		}
 		renderer.setOpaque(true);
 		renderer.setForeground(foreground);
