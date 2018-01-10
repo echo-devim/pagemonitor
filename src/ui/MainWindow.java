@@ -1,5 +1,6 @@
 package ui;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
@@ -8,10 +9,15 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Frame;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.SystemTray;
 import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -20,6 +26,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -58,6 +67,8 @@ public class MainWindow {
 	private static Settings settings;
 	private static SettingsWindow settingsWindow;
 	protected static KeySetView<Integer,Boolean> concurrentSet;
+	private static int changes_to_notify;
+	private static TrayIcon trayIcon;
 
 	
 	private static void updateList() {
@@ -67,7 +78,7 @@ public class MainWindow {
 		}
 	}
 	
-	public static void setUIFont (javax.swing.plaf.FontUIResource f){
+	private static void setUIFont (javax.swing.plaf.FontUIResource f){
 	    java.util.Enumeration<Object> keys = UIManager.getLookAndFeelDefaults().keys();
 	    while (keys.hasMoreElements()) {
 	      Object key = keys.nextElement();
@@ -77,6 +88,27 @@ public class MainWindow {
 	      }
 	    }
 	
+	private static Image getUpdatedTrayIcon() {
+		// TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
+	    // into integer pixels
+	    BufferedImage bi = new BufferedImage(30, 30, BufferedImage.TYPE_INT_ARGB);
+		/* Code needed to load a custom icon from an image,
+		 * however, it breaks the font (and the emoji) FIXME
+		 
+	    try {
+			bi = ImageIO.read(MainWindow.class.getResource("/world.png"));
+		} catch (IOException e) {
+			System.err.println("Icon not found: " + e.getMessage());
+		}
+		*/
+	    Graphics2D ig2 = bi.createGraphics();
+	    ig2.setColor(Color.WHITE);
+	    ig2.fillRect(0, 0, bi.getWidth(), bi.getHeight());
+	    ig2.setColor(Color.BLACK);
+	    ig2.drawString(String.valueOf(changes_to_notify), 5, 15);
+	    ig2.dispose();
+	    return bi.getScaledInstance(bi.getWidth(), bi.getHeight(), 0);
+	}
 
 	public static void main(String[] args) {
 		concurrentSet = ConcurrentHashMap.newKeySet();
@@ -103,6 +135,8 @@ public class MainWindow {
 		    // If Nimbus is not available, use the default look and feel.
 		}
 		setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.PLAIN,12));
+		changes_to_notify = 0;
+	    trayIcon = new TrayIcon(getUpdatedTrayIcon());
 		settings = new Settings();
 		settingsWindow = new SettingsWindow(settings); 
 		JFrame mainwindow = new JFrame();
@@ -120,6 +154,10 @@ public class MainWindow {
 			//this callback is executed by multiple threads
 			if ((id >= 0) && (id < listModel.getSize())) {
 				concurrentSet.add(new Integer(id));
+				if (mainwindow.getState() == Frame.ICONIFIED) {
+					changes_to_notify++;
+					trayIcon.setImage(getUpdatedTrayIcon());
+				}
 				return true;
 			} else
 				return false;
@@ -268,6 +306,7 @@ public class MainWindow {
 			c.ipady = 500;
 			container.add(scrollPanePage, c);
 		}
+		final SystemTray tray = SystemTray.getSystemTray();
 		mainwindow.add(container);
 		mainwindow.setSize(new Dimension(800, 500));
 		mainwindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -279,7 +318,23 @@ public class MainWindow {
 			public void windowClosed(WindowEvent e) {}
 			
 			public void windowIconified(WindowEvent e) {
-			
+				if (SystemTray.isSupported()) {
+					mainwindow.dispose();
+					try {
+						tray.add(trayIcon);
+						trayIcon.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							changes_to_notify = 0;
+							trayIcon.setImage(getUpdatedTrayIcon());
+							mainwindow.setState(Frame.NORMAL);
+							mainwindow.setVisible(true);
+							tray.remove(trayIcon);
+						}});
+					} catch (AWTException e1) {
+						System.err.println("TrayIcon could not be added.");
+					}
+				} else
+					System.err.println("System tray is not supported");
 			}
 			public void windowDeiconified(WindowEvent e) {}
 			public void windowActivated(WindowEvent e) {}
@@ -291,7 +346,6 @@ public class MainWindow {
 }
 
 class CustomListRenderer implements ListCellRenderer<String> {
-	protected final static String KEY_WORD = "CHANGED";
 	private JLabel renderer;
 	boolean showDesc = true;
 
