@@ -78,7 +78,11 @@ public class PageMonitor {
 		String[] files = dir.list();
 		if (files.length > 0) {
 		    for (String file : files) {
-		        monitoredPages.add(Integer.parseInt(file));
+		    	try {
+		    		monitoredPages.add(Integer.parseInt(file));
+		    	} catch (NumberFormatException e) {
+		    		System.err.println("Not a number: Invalid id name for file "+file);
+		    	}
 		    }
 		}
 		return monitoredPages;
