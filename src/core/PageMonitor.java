@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import ui.notification.Notification;
@@ -23,10 +24,11 @@ public class PageMonitor {
 	private boolean extract_text_only;
 	private ArrayList<Integer> monitored_pages;
 	private Thread worker;
-	private boolean background_monitor = false;
+	private AtomicBoolean background_monitor;
 	private Function<ChangedPage,Boolean> callback = null;
 	
 	public PageMonitor() {
+		this.background_monitor = new AtomicBoolean(false);
 		this.minutes_interval = SETTINGS.getMinutesInterval();
 		this.extract_text_only = SETTINGS.getExtractTextOnly();
 		this.monitored_pages = getMonitoredPagesId();
@@ -36,7 +38,12 @@ public class PageMonitor {
 		}
 		this.worker = new Thread() {
 			public void run(){
-				if (background_monitor == true) {
+				/* background_monitor is atomic, because in the main thread the user
+				 * can stop the monitoring, thus there is a writer thread (setting background_monitor
+				 * to false) and this reader thread.
+				 */
+				if (background_monitor.get() == true) {
+					System.out.println("Check");
 					checkAllPages();
 					try {
 						Thread.sleep(minutes_interval * 1000 * 60);
@@ -44,6 +51,7 @@ public class PageMonitor {
 						System.err.println("Error in the thread monitor: " + e.getMessage());
 						System.exit(1);
 					}
+					this.run();
 				}
 			}};
 	}
@@ -57,13 +65,13 @@ public class PageMonitor {
 	}
 	
 	public void startMonitor() {
-		this.background_monitor = true;
+		this.background_monitor.set(true);;
 		if (!this.worker.isAlive())
 			this.worker.start();
 	}
 	
 	public void stopMonitor() {
-		this.background_monitor = false;
+		this.background_monitor.set(false);
 	}
 	
 	public ArrayList<String> getMonitoredPages() {
