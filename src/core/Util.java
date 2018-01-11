@@ -33,15 +33,25 @@ public class Util {
 		}
 	}
 	
+	//TODO: implement a real diff function based on a well known algorithm (e.g. Myers' algorithm)
+	//This function returns a substring starting from the first different character
 	public static String diff(String newstr, String oldstr) {
 		String substr = "";
 		char[] first = oldstr.toCharArray();
 		char[] second = newstr.toCharArray();
+		boolean startDiff = false;
 
+		if (newstr.length() > oldstr.length()) {
+			return newstr.substring(oldstr.length());
+		} else if (newstr.length() < oldstr.length()) {
+			return oldstr.substring(newstr.length());
+		}
+		
 		int minLength = Math.min(first.length, second.length);
 
 		for (int i = 0; i < minLength; i++) {
-			if (first[i] != second[i]) {
+			startDiff = startDiff || (first[i] != second[i]);
+			if (startDiff) {
 				substr += second[i];
 			}
 		}
