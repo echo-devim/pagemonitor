@@ -154,10 +154,10 @@ public class PageMonitor {
 				String message = "";
 				if ((diffLen > SETTINGS.getDiffCharsThreshold()) &&
 					(newHtml.length() > oldHtml.length())) {
-					message = "Added new text close to " + diffChars.replaceAll("\\s+"," ");
+					message = "Added new text: " + diffChars.replaceAll("\\s+"," ");
 				} else if ((diffLen > SETTINGS.getDiffCharsThreshold()) &&
 							(newHtml.length() < oldHtml.length())) {
-					message = "Removed text close to " + diffChars.replaceAll("\\s+"," ");
+					message = "Removed text: " + diffChars.replaceAll("\\s+"," ");
 				} else {
 					if (diffChars.length() > SETTINGS.getDiffCharsThreshold()) {
 						message = "Changed text: " + diffChars;

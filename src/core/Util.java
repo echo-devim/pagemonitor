@@ -33,26 +33,50 @@ public class Util {
 		}
 	}
 	
-	//TODO: implement a real diff function based on a well known algorithm (e.g. Myers' algorithm)
-	//This function returns a substring starting from the first different character
+	//This function returns a substring starting from the first different character and
+	//ending to the last different character 
 	public static String diff(String newstr, String oldstr) {
 		String substr = "";
 		char[] first = oldstr.toCharArray();
 		char[] second = newstr.toCharArray();
-		boolean startDiff = false;
-
-		if (newstr.length() > oldstr.length()) {
-			return newstr.substring(oldstr.length());
-		} else if (newstr.length() < oldstr.length()) {
-			return oldstr.substring(newstr.length());
-		}
 		
 		int minLength = Math.min(first.length, second.length);
-
-		for (int i = 0; i < minLength; i++) {
-			startDiff = startDiff || (first[i] != second[i]);
-			if (startDiff) {
-				substr += second[i];
+		int lastIndex = 1;
+		int firstIndex = 0;
+		int stopDiff = 0;
+		while ((stopDiff < 2) && (firstIndex <= minLength-lastIndex)) {
+			//Start from the begin looking for the first different char index
+			if (first[firstIndex] == second[firstIndex]) {
+				firstIndex++;
+			} else {
+				stopDiff++;
+			}
+			//Start from the end looking for the last different char index
+			if (first[first.length-lastIndex] == second[second.length-lastIndex]) {
+				lastIndex++;
+			} else {
+				stopDiff++;
+			}
+		}
+		
+		//if the 2 indexes stop at different positions, this means that there is some new/deleted characters
+		if (firstIndex != lastIndex-1) {
+			//Check which string is the longest
+			if (first.length > second.length) { //if the characters are removed from first (aka oldHtml)
+				//return the deleted characters
+				substr = oldstr.substring(firstIndex, first.length-lastIndex+1);
+			} else { //else if the characters are added to second (aka newHtml)
+				//return the added characters
+				substr = newstr.substring(firstIndex, second.length-lastIndex+1);
+			}
+		}
+		//if the different chars are at the end of first or second strings..
+		if (substr.equals("")) { //From 0 to minLength the strings are equals
+			//check who is the longest and return the extra-characters at the end
+			if (newstr.length() > oldstr.length()) {
+				return newstr.substring(oldstr.length());
+			} else if (newstr.length() < oldstr.length()) {
+				return oldstr.substring(newstr.length());
 			}
 		}
 		return substr;
