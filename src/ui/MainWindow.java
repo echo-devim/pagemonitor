@@ -104,9 +104,9 @@ public class MainWindow {
 		}
 		*/
 	    Graphics2D ig2 = bi.createGraphics();
-	    ig2.setColor(Color.WHITE);
+	    ig2.setColor(new Color(0.2f,0.5f,0.7f));
 	    ig2.fillRect(0, 0, bi.getWidth(), bi.getHeight());
-	    ig2.setColor(Color.GRAY);
+	    ig2.setColor(Color.WHITE);
 	    ig2.setFont(new Font(ig2.getFont().getName(), Font.PLAIN, bi.getHeight() - 3));
 	    ig2.drawString("🌐", 0, bi.getHeight() - 6);
 	    ig2.setColor(Color.RED);
@@ -204,6 +204,7 @@ public class MainWindow {
 				if (!listPages.isSelectionEmpty()) {
 					String value = listPages.getSelectedValue();
 					pageMonitor.removePage(listPages.getSelectedIndex());
+					concurrentSetChangedPages.remove(new ChangedPage(listPages.getSelectedIndex(), value));
 					updateList();
 					statusBar.setText("Deleted " + value.substring(0,  Math.min(value.length(), 20)) + ".. ");
 				}
@@ -213,6 +214,7 @@ public class MainWindow {
 		btnDeleteAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pageMonitor.removeAllMonitoredPages();
+				concurrentSetChangedPages.clear();
 				listModel.removeAllElements();
 				statusBar.setText("Deleted all the pages");
 			}});
@@ -298,9 +300,12 @@ public class MainWindow {
 					clpbrd.setContents(stringSelection, null);
 					jep.setContentType("text/plain");
 					concurrentSetChangedPages.forEach((page) -> {
-						if (page.getId() == listPages.getSelectedIndex())
+						if (page.getId() == listPages.getSelectedIndex()) {
 							jep.setText(page.toString());
+							concurrentSetChangedPages.remove(page);
+						}
 					});
+					
 				}
 			}
 		});
