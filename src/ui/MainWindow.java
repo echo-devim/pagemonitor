@@ -99,8 +99,7 @@ public class MainWindow {
 	    try {
 			bi = ImageIO.read(MainWindow.class.getResource("/world.png"));
 		} catch (IOException e) {
-			System.err.println("Icon not found: " + e.getMessage());
-			return null;
+			System.err.println("TrayIcon not found: " + e.getMessage());
 		}
 	    Graphics2D ig2 = bi.createGraphics();
 	    ig2.setColor(Color.BLACK);
@@ -141,6 +140,11 @@ public class MainWindow {
 		settingsWindow = new SettingsWindow(settings); 
 		JFrame mainwindow = new JFrame();
 		mainwindow.setTitle("PageMonitor");
+	    try {
+			mainwindow.setIconImage(ImageIO.read(MainWindow.class.getResource("/icon.png")));
+		} catch (IOException e) {
+			System.err.println("Icon not found: " + e.getMessage());
+		}
 		JPanel container = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		JLabel statusBar = new JLabel("status bar");
