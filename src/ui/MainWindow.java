@@ -39,6 +39,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -94,22 +96,14 @@ public class MainWindow {
 		// TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
 	    // into integer pixels
 	    BufferedImage bi = new BufferedImage(25, 25, BufferedImage.TYPE_INT_ARGB);
-		/* Code needed to load a custom icon from an image,
-		 * however, it breaks the font (and the emoji) FIXME
-		 
 	    try {
 			bi = ImageIO.read(MainWindow.class.getResource("/world.png"));
 		} catch (IOException e) {
 			System.err.println("Icon not found: " + e.getMessage());
+			return null;
 		}
-		*/
 	    Graphics2D ig2 = bi.createGraphics();
-	    ig2.setColor(new Color(0.2f,0.5f,0.7f));
-	    ig2.fillRect(0, 0, bi.getWidth(), bi.getHeight());
-	    ig2.setColor(Color.WHITE);
-	    ig2.setFont(new Font(ig2.getFont().getName(), Font.PLAIN, bi.getHeight() - 3));
-	    ig2.drawString("🌐", 0, bi.getHeight() - 6);
-	    ig2.setColor(Color.RED);
+	    ig2.setColor(Color.BLACK);
 	    ig2.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 	    ig2.drawString(String.valueOf(changes_to_notify), 10, 20);
 	    ig2.dispose();
