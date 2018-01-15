@@ -39,26 +39,25 @@ public class Util {
 		String substr = "";
 		char[] first = oldstr.toCharArray();
 		char[] second = newstr.toCharArray();
-		
 		int minLength = Math.min(first.length, second.length);
 		int lastIndex = 1;
 		int firstIndex = 0;
-		int stopDiff = 0;
-		while ((stopDiff < 2) && (firstIndex <= minLength-lastIndex)) {
+		boolean foundFirstIndex = false;
+		boolean foundLastIndex = false;
+		while (!(foundFirstIndex && foundLastIndex) && (firstIndex <= minLength-lastIndex)) {
 			//Start from the begin looking for the first different char index
 			if (first[firstIndex] == second[firstIndex]) {
 				firstIndex++;
 			} else {
-				stopDiff++;
+				foundFirstIndex = true;
 			}
 			//Start from the end looking for the last different char index
 			if (first[first.length-lastIndex] == second[second.length-lastIndex]) {
 				lastIndex++;
 			} else {
-				stopDiff++;
+				foundLastIndex = true;
 			}
 		}
-		
 		//if the 2 indexes stop at different positions, this means that there is some new/deleted characters
 		if (firstIndex != lastIndex-1) {
 			//Check which string is the longest

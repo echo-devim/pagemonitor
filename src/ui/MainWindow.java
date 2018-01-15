@@ -30,6 +30,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.ExecutionException;
@@ -276,7 +278,6 @@ public class MainWindow {
 		JScrollPane scrollPanePage = new JScrollPane(jep);
 		JScrollPane scrollPanePageList = new JScrollPane();
 		updateList();
-		//listPages.setBackground(new Color(1.0f, 1.0f, 0.95f));
 		listPages.addMouseListener(new MouseAdapter() {
 		    public void mouseClicked(MouseEvent evt) {
 		        if (evt.getClickCount() == 2) {

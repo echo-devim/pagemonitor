@@ -43,7 +43,6 @@ public class PageMonitor {
 				 * to false) and this reader thread.
 				 */
 				if (background_monitor.get() == true) {
-					System.out.println("Check");
 					checkAllPages();
 					try {
 						Thread.sleep(minutes_interval * 1000 * 60);
