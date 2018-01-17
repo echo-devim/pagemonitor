@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.jsoup.Jsoup;
+
 public class Util {
 
 	public static String extractText(String html) {
-		return html.replaceAll("\\<.*?>","");
+		return Jsoup.parse(html,"ISO-8859-1").select("body").text();
 	}
 	
 	public static String readFile(String filePath) {
