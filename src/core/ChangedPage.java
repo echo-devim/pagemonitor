@@ -18,7 +18,7 @@ public class ChangedPage {
 	public ChangedPage(int id, String url, String summary) {
 		this.id = id;
 		this.url = url;
-		this.summary = summary.substring(0, Math.min(summary.length(), 500)) + "..";
+		this.summary = summary.substring(0, Math.min(summary.length(), 1000)) + "..";
 	}
 	
 	public int getId() {
